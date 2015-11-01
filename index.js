@@ -17,6 +17,43 @@ function byteField(p, offset) {
         p.buf[offset] = val;
     }
 }
+function FloatField(p,offset,le){
+    this.lenght = 4;
+    this.offset = offset;
+
+    var  nativeSuff = 'Float'+ (le?'LE':'BE');
+    var  readMethod = Buffer.prototype['read' + nativeSuff];
+    var  writeMethod = Buffer.prototype['write' + nativeSuff];
+
+    if(!readMethod || !writeMethod){
+        throw  new Error('Buffer do not has the method:read'+nativeSuff+'and write'+nativeSuff);
+    }
+    this.get = function(){
+        return  readMethod.call(p.buf,offset);
+    }
+    this.set = function(val){
+        writeMethod.call(p.buf,val,offset);
+    }
+}
+
+function DoubleField(p,offset,le){
+    this.length = 8;
+    this.offset = offset;
+
+    var  nativeSuff = 'Double'+ (le?'LE':'BE');
+    var  readMethod = Buffer.prototype['read' + nativeSuff];
+    var  writeMethod = Buffer.prototype['write' + nativeSuff];
+
+    if(!readMethod || !writeMethod){
+        throw  new Error('Buffer do not has the method:read'+nativeSuff+'and write'+nativeSuff);
+    }
+    this.get = function(){
+        return  readMethod.call(p.buf,offset);
+    }
+    this.set = function(val){
+        writeMethod.call(p.buf,val,offset);
+    }
+}
 
 function boolField(p, offset, length) {
     this.length = length;
@@ -97,6 +134,7 @@ function intField(p, offset, length, le, signed) {
     }
 
 }
+
 
 function charField(p, offset, length, encoding) {
     var self = this;
@@ -195,6 +233,30 @@ function Struct() {
         });
         return this;
     };
+
+    [true,false].forEach(function(le){
+        var name = 'float'+( le ? 'le' : 'be');
+        self[name] = function(key){
+            checkAllocated()
+            priv.closures.push(function(p){
+                p.fields[key] = new FloatField(p, p.len,le);
+                p.len += 4;
+            })
+            return this;
+        };
+    });
+
+    [true,false].forEach(function(le){
+        var name = 'double' + (le ? 'le' : 'be');
+        self[name] = function(key){
+            checkAllocated();
+            priv.closures.push(function(p){
+                p.fields[key] = new DoubleField(p, p.len,le);
+                p.len += 8;
+            });
+            return this;
+        }
+    });
 
     // Create handlers for various Bool Field Variants
     [1, 2, 3, 4].forEach(function(n) {
