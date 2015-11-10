@@ -7,7 +7,7 @@ module.exports = exports = Struct;
 // compatibility
 exports.Struct = Struct;
 
-function byteField(p, offset) {
+function ByteField(p, offset) {
     this.length = 1;
     this.offset = offset;
     this.get = function() {
@@ -55,7 +55,7 @@ function DoubleField(p,offset,le){
     }
 }
 
-function boolField(p, offset, length) {
+function BoolField(p, offset, length) {
     this.length = length;
     this.offset = offset;
     this.get = function() {
@@ -66,7 +66,7 @@ function boolField(p, offset, length) {
     }
 }
 
-function intField(p, offset, length, le, signed) {
+function IntField(p, offset, length, le, signed) {
     this.length = length;
     this.offset = offset;
 
@@ -136,7 +136,7 @@ function intField(p, offset, length, le, signed) {
 }
 
 
-function charField(p, offset, length, encoding) {
+function CharField(p, offset, length, encoding) {
     var self = this;
     self.length = length;
     self.offset = offset;
@@ -168,7 +168,7 @@ function charField(p, offset, length, encoding) {
     }
 }
 
-function structField(p, offset, struct) {
+function StructField(p, offset, struct) {
     this.length = struct.length();
     this.offset = offset;
     this.get = function() {
@@ -182,7 +182,7 @@ function structField(p, offset, struct) {
     }
 }
 
-function arrayField(p, offset, len, type) {
+function ArrayField(p, offset, len, type) {
     var as = Struct();
     var args = [].slice.call(arguments, 4);
     args.unshift(0);
@@ -228,7 +228,7 @@ function Struct() {
     this.word8 = function(key) {
         checkAllocated();
         priv.closures.push(function(p) {
-            p.fields[key] = new byteField(p, p.len);
+            p.fields[key] = new ByteField(p, p.len);
             p.len++;
         });
         return this;
@@ -263,7 +263,7 @@ function Struct() {
         self['bool' + (n == 1 ? '' : n)] = function(key) {
             checkAllocated();
             priv.closures.push(function(p) {
-                p.fields[key] = new boolField(p, p.len, n);
+                p.fields[key] = new BoolField(p, p.len, n);
                 p.len += n;
             });
             return this;
@@ -278,7 +278,7 @@ function Struct() {
                 self[name] = function(key) {
                     checkAllocated();
                     priv.closures.push(function(p) {
-                        p.fields[key] = new intField(p, p.len, n, le, signed);
+                        p.fields[key] = new IntField(p, p.len, n, le, signed);
                         p.len += n;
                     });
                     return this;
@@ -290,7 +290,7 @@ function Struct() {
     this.chars = function(key, length, encoding) {
         checkAllocated();
         priv.closures.push(function(p) {
-            p.fields[key] = new charField(p, p.len, length, encoding || 'ascii');
+            p.fields[key] = new CharField(p, p.len, length, encoding || 'ascii');
             p.len += length;
         });
         return this;
@@ -299,7 +299,7 @@ function Struct() {
     this.struct = function(key, struct) {
         checkAllocated();
         priv.closures.push(function(p) {
-            p.fields[key] = new structField(p, p.len, struct.clone());
+            p.fields[key] = new StructField(p, p.len, struct.clone());
             p.len += p.fields[key].length;
         });
         return this;
@@ -323,7 +323,7 @@ function Struct() {
         priv.closures.push(function(p) {
             args[0] = p;
             args[1] = p.len;
-            p.fields[key] = construct(arrayField, args);
+            p.fields[key] = construct(ArrayField, args);
             p.len += p.fields[key].length;
         });
 
@@ -413,8 +413,8 @@ function Struct() {
         var fields = {};
         Object.keys(priv.fields).forEach(function(key) {
             var setFunc, getFunc;
-            if(priv.fields[key] instanceof structField ||
-               priv.fields[key] instanceof arrayField)  {
+            if(priv.fields[key] instanceof StructField ||
+               priv.fields[key] instanceof ArrayField)  {
                    getFunc = function(){
                        return priv.fields[key].get().fields;
                    };
