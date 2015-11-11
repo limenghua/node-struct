@@ -86,6 +86,12 @@ same for 32 and 64 bit fields
 ### chars(name,length[,encoding])
 defines array of chars with `encoding` ('ascii' by default) encoding, name - name of the field, length - length of array
 
+### floatle(name),floatbe(name)
+define 32 bit float number with little-endian and big-endian byte order
+### doublele(name),doublebe(name)
+define 64 bit double number with little-endian and big-endian byte order
+
+
 ### array(name, length, type, ...)
 defines array of fields (internally it is Struct() object with field names set to 0,1,2,... ).
  
